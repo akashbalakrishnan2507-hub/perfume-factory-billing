@@ -1,0 +1,10 @@
+{
+  "name": "perfume-factory-billing",
+  "version": "1.0.0",
+  "description": "Perfume Factory Flower Procurement & Billing Management System",
+  "scripts": {
+    "start": "node backend/server.js",
+    "backend": "node backend/server.js",
+    "frontend": "npx serve frontend/public -p 3000"
+  }
+}

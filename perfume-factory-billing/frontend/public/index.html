@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfume Factory — Flower Procurement & Billing</title>
+  <meta name="description" content="Perfume Factory Flower Procurement and Billing Management System — manage collections, rates, payments and invoices for aromatic flower suppliers.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════════════════════ -->
+<div id="login-screen" class="login-screen login-page" style="display:flex">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-badge">
+        <span class="logo-emoji">🌸</span>
+      </div>
+      <h1>Perfume Factory</h1>
+      <p>Flower Procurement &amp; Billing System</p>
+    </div>
+
+    <form onsubmit="handleLogin(event)" class="login-form">
+      <div class="form-group">
+        <label class="form-label" for="login-email">Email Address</label>
+        <input id="login-email" type="email" class="form-control" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="login-password">Password</label>
+        <input id="login-password" type="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button id="login-btn" type="submit" class="btn btn-primary btn-lg btn-login">
+        Sign In →
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>Perfume Factory Billing System v1.0</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     APP SHELL (authenticated)
+═══════════════════════════════════════════════════════════ -->
+<div id="app-shell" class="app-shell" style="display:none">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🌸</div>
+      <div class="logo-text">
+        Perfume Factory
+        <div class="logo-sub">Billing System</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">📊</span>Dashboard
+      </div>
+
+      <div class="nav-section-label">Procurement</div>
+      <div class="nav-item" data-page="collections">
+        <span class="nav-icon">📦</span>Collections
+      </div>
+      <div class="nav-item" data-page="bills">
+        <span class="nav-icon">🧾</span>Bills &amp; Invoices
+      </div>
+      <div class="nav-item" data-page="payments">
+        <span class="nav-icon">💳</span>Payments
+      </div>
+
+      <div class="nav-section-label">Master Data</div>
+      <div class="nav-item" data-page="customers">
+        <span class="nav-icon">👨‍🌾</span>Farmers
+      </div>
+      <div class="nav-item" data-page="villages">
+        <span class="nav-icon">🏘️</span>Villages
+      </div>
+      <div class="nav-item" data-page="flowers">
+        <span class="nav-icon">🌺</span>Flowers
+      </div>
+      <div class="nav-item" data-page="rates">
+        <span class="nav-icon">📈</span>Flower Rates
+      </div>
+
+      <div class="nav-section-label">Analytics</div>
+      <div class="nav-item" data-page="reports">
+        <span class="nav-icon">📋</span>Reports
+      </div>
+
+      <div class="nav-section-label" data-admin-only>Admin</div>
+      <div class="nav-item" data-page="settings" data-admin-only>
+        <span class="nav-icon">⚙️</span>Settings &amp; Staff
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user" onclick="handleLogout()">
+        <div class="avatar" id="sidebar-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-name">User</div>
+          <div class="user-role" id="sidebar-role">staff</div>
+        </div>
+        <span style="margin-left:auto;font-size:14px;color:rgba(255,255,255,.4)">⏻</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main Content ────────────────────────────────────── -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="topbar-toggle" id="topbar-toggle" title="Toggle sidebar">☰</button>
+      <div class="topbar-title" id="topbar-title">🌸 Dashboard</div>
+
+      <div class="topbar-search">
+        <span class="search-icon">🔍</span>
+        <input type="search" placeholder="Search bills, farmers…" id="global-search" autocomplete="off"
+          oninput="handleGlobalSearch(this.value)">
+      </div>
+
+      <div class="topbar-actions">
+        <button class="topbar-btn" title="New Collection" onclick="App.navigate('collections'); setTimeout(showNewCollectionModal, 300)">＋</button>
+        <button class="topbar-btn" title="Reports" onclick="App.navigate('reports')">📋</button>
+        <button class="topbar-btn" title="Sign out" onclick="handleLogout()">⏻</button>
+      </div>
+    </header>
+
+    <!-- Pages -->
+    <main class="page-content">
+
+      <div id="page-dashboard" class="page active">
+        <div class="text-center" style="padding:80px"><div class="spinner"></div></div>
+      </div>
+
+      <div id="page-collections" class="page"></div>
+      <div id="page-bills" class="page"></div>
+      <div id="page-payments" class="page"></div>
+      <div id="page-customers" class="page"></div>
+      <div id="page-villages" class="page"></div>
+      <div id="page-flowers" class="page"></div>
+      <div id="page-rates" class="page"></div>
+      <div id="page-reports" class="page"></div>
+      <div id="page-settings" class="page"></div>
+
+    </main>
+  </div><!-- /main-content -->
+
+</div><!-- /app-shell -->
+
+<!-- ══════════════════════════════════════════════════════════
+     GLOBAL MODAL
+═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Modal</div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOAST CONTAINER
+═══════════════════════════════════════════════════════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════ -->
+<script src="auth.js"></script>
+<script src="api.js"></script>
+<script src="app.js"></script>
+
+<script>
+  // Global search — navigate to collections with search query
+  function handleGlobalSearch(val) {
+    if (!val || val.length < 2) return;
+    if (App.currentPage !== 'collections') App.navigate('collections');
+    setTimeout(() => {
+      const input = document.getElementById('col-search');
+      if (input) { input.value = val; collectionsState.filters.search = val; loadCollections(1); }
+    }, 100);
+  }
+</script>
+
+</body>
+</html>

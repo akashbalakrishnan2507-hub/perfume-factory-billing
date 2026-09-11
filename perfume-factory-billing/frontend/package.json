@@ -1,0 +1,13 @@
+{
+  "name": "perfume-factory-billing-frontend",
+  "version": "1.0.0",
+  "description": "Perfume Factory Billing System - Frontend",
+  "private": true,
+  "scripts": {
+    "dev": "python -m http.server 3000 --directory public",
+    "start": "npx serve public -p 3000"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
