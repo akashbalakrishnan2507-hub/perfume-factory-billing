@@ -8,12 +8,22 @@ router.use(authenticate);
 
 router.get('/daily', ctrl.daily);
 router.get('/daily/export.csv', ctrl.daily);
+
+router.get('/weekly', ctrl.weekly);
+router.get('/weekly/export.csv', ctrl.weekly);
+
 router.get('/monthly', ctrl.monthly);
 router.get('/monthly/export.csv', ctrl.monthly);
+
+router.get('/farmer', ctrl.farmer);
+router.get('/farmer/export.csv', ctrl.farmer);
+
 router.get('/village', ctrl.village);
 router.get('/village/export.csv', ctrl.village);
+
 router.get('/flower', ctrl.flower);
 router.get('/flower/export.csv', ctrl.flower);
+
 router.get('/payments', ctrl.payments);
 router.get('/payments/export.csv', ctrl.payments);
 

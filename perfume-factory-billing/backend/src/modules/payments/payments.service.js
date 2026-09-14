@@ -12,6 +12,7 @@
 
 const { transaction } = require('../../config/db');
 const { rupeesToPaise, paiseToRupees } = require('../../utils/money');
+const { emitEvent } = require('../../socket');
 const dayjs = require('dayjs');
 
 async function createPayment(collectionId, data, userId) {
@@ -82,13 +83,15 @@ async function createPayment(collectionId, data, userId) {
     );
 
     const [pmtRows] = await conn.execute('SELECT * FROM payments WHERE id = ?', [pmtRes.insertId]);
-    return {
+    const result = {
       ...pmtRows[0],
       amount_rupees: paiseToRupees(pmtRows[0].amount),
       amount_paise: pmtRows[0].amount,
       collection_status: newStatus,
       pending_amount_rupees: paiseToRupees(totalAmount - newPaidAmount),
     };
+    emitEvent('payment:created', { collectionId, payment: result });
+    return result;
   });
 }
 

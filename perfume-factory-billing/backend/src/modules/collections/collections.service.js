@@ -14,12 +14,15 @@
 
 const { transaction, query } = require('../../config/db');
 const { generateBillNumber } = require('../../utils/billNumber');
+const { emitEvent } = require('../../socket');
 const {
   calculateItemAmount,
   calculateCollectionTotal,
   rupeesToPaise,
   paiseToRupees,
 } = require('../../utils/money');
+
+const dayjs = require('dayjs');
 
 function pg(p, ps) {
   const page = Math.max(1, parseInt(p, 10) || 1);
@@ -28,7 +31,7 @@ function pg(p, ps) {
 }
 
 function parseDate(d) {
-  if (!d) return new Date().toISOString().split('T')[0];
+  if (!d) return dayjs().format('YYYY-MM-DD');
   return d;
 }
 
@@ -75,8 +78,43 @@ async function listCollections({ page, pageSize, customer_id, village_id, flower
     [...params, ps, offset]
   );
 
+  const collectionIds = rows.map((r) => r.id);
+  const itemsByCollection = {};
+  if (collectionIds.length > 0) {
+    const placeholders = collectionIds.map(() => '?').join(',');
+    const [items] = await query(
+      `SELECT ci.*, f.name AS flower_name, f.local_name
+       FROM collection_items ci
+       LEFT JOIN flowers f ON f.id = ci.flower_id
+       WHERE ci.collection_id IN (${placeholders})
+       ORDER BY ci.id ASC`,
+      collectionIds
+    );
+    for (const item of items) {
+      if (!itemsByCollection[item.collection_id]) itemsByCollection[item.collection_id] = [];
+      itemsByCollection[item.collection_id].push({
+        ...item,
+        weight_kg: parseFloat(item.weight_kg),
+        rate_per_kg_rupees: paiseToRupees(item.rate_per_kg),
+        amount_rupees: paiseToRupees(item.amount),
+      });
+    }
+  }
+
   return {
-    data: rows.map(formatCollection),
+    data: rows.map((r) => {
+      const items = itemsByCollection[r.id] || [];
+      const totalWeight = items.reduce((acc, i) => acc + (i.weight_kg || 0), 0);
+      const flowersSummary = items.map((i) => i.flower_name).join(', ') || 'General';
+      const ratesSummary = items.map((i) => `₹${i.rate_per_kg_rupees}/kg`).join(', ') || '-';
+      return {
+        ...formatCollection(r),
+        items,
+        total_weight_kg: parseFloat(totalWeight.toFixed(3)),
+        flowers_summary: flowersSummary,
+        rates_summary: ratesSummary,
+      };
+    }),
     meta: { page: p, pageSize: ps, total },
   };
 }
@@ -244,7 +282,11 @@ async function createCollection(data, userId) {
     }
 
     return collectionId;
-  }).then((id) => getCollectionById(id));
+  }).then(async (id) => {
+    const created = await getCollectionById(id);
+    emitEvent('bill:created', created);
+    return created;
+  });
 }
 
 /**
@@ -277,7 +319,9 @@ async function updateCollection(id, data, userId) {
     }
   }
 
-  return getCollectionById(id);
+  const updated = await getCollectionById(id);
+  emitEvent('bill:updated', updated);
+  return updated;
 }
 
 /**
@@ -293,6 +337,7 @@ async function deleteCollection(id) {
   }
 
   await query('UPDATE collections SET deleted_at = NOW() WHERE id = ?', [id]);
+  emitEvent('bill:deleted', { id });
 }
 
 /**
