@@ -176,7 +176,8 @@ function getSqliteDb() {
     const { DatabaseSync } = require('node:sqlite');
     const dayjs = require('dayjs');
 
-    const dataDir = path.join(__dirname, '../../../data');
+    const isVercel = Boolean(process.env.VERCEL);
+    const dataDir = process.env.DATA_DIR || (isVercel ? '/tmp/data' : path.join(__dirname, '../../../data'));
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
